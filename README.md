@@ -1,76 +1,67 @@
 # BKK Flood Watch – ระบบติดตามและเฝ้าระวังน้ำท่วมกรุงเทพมหานคร
 
-**Static HTML / PWA** พร้อมเปิดบน **GitHub Pages** ได้ทันที (ไม่ต้อง build)
+**Static HTML + PWA** พร้อมเปิดบน **GitHub Pages** ได้ทันที
 
-> ข้อมูลทั้งหมดเป็น **Demo / Mock Data**  
-> ใช้เป็นมาตรฐานตั้งต้นก่อนเชื่อมต่อ API จริงจาก BMA
-
----
-
-## เปิดดูทันที (ไม่ต้องติดตั้งอะไร)
-
-1. แตกไฟล์ zip
-2. เปิดไฟล์ `index.html` ด้วยเบราว์เซอร์  
-   หรือใช้ Live Server / Python: `python -m http.server 8080`
+> ข้อมูลเป็น **Demo / Mock** · แยกชัด: Near Real-time · ย้อนหลัง 5 วัน · คาดการณ์ 5 วัน
 
 ---
 
-## วิธี Deploy บน GitHub Pages
+## ⚠️ วิธี Deploy บน GitHub ให้ถูกต้อง
 
-### วิธีที่ 1: Upload ผ่านเว็บ GitHub
-1. สร้าง Repository ใหม่บน GitHub (เช่น `bkk-flood-watch`)
-2. ไปที่ **Add file → Upload files**
-3. ลากไฟล์ทั้งหมดในโฟลเดอร์นี้ขึ้นไป → Commit
-4. ไปที่ **Settings → Pages**
-5. Source เลือก **Deploy from a branch** → Branch: `main` / folder: `/ (root)`
-6. รอ 1–2 นาที แล้วเปิด  
-   `https://<username>.github.io/bkk-flood-watch/`
+### สำคัญมาก
+ไฟล์ทั้งหมดต้องอยู่ที่ **root ของ repository** (ไม่ใช่ซ้อนในโฟลเดอร์อีกชั้น)
 
-### วิธีที่ 2: ใช้ Git CLI
-```bash
-git init
-git add .
-git commit -m "Initial BKK Flood Watch static demo"
-git branch -M main
-git remote add origin https://github.com/<username>/bkk-flood-watch.git
-git push -u origin main
+โครงสร้างที่ถูกต้องบน GitHub:
 ```
-จากนั้นตั้งค่า Pages ตามขั้นตอนด้านบน
+your-repo/
+  index.html
+  css/styles.css
+  js/app.js
+  js/data.js
+  manifest.json
+  sw.js
+  .nojekyll
+  icons/
+  docs/
+  README.md
+```
+
+### ขั้นตอน
+1. สร้าง Repository ใหม่บน GitHub (Public)
+2. **Upload files** → เลือกไฟล์ **ภายใน** โฟลเดอร์นี้ทั้งหมด (index.html, css, js, ...)
+3. **อย่า** อัปโหลดโฟลเดอร์ `bkk-flood-watch-github` ทั้งก้อนเป็นชั้นใน
+4. Settings → Pages → Source: **Deploy from a branch** → `main` → `/ (root)`
+5. รอ 1–2 นาที แล้วเปิด `https://<username>.github.io/<repo>/`
+
+### ไฟล์ `.nojekyll`
+มีไฟล์นี้แล้ว เพื่อไม่ให้ GitHub Jekyll ประมวลผลผิดพลาด
 
 ---
 
-## คุณสมบัติที่มี
+## คุณสมบัติ
 
 | ฟีเจอร์ | สถานะ |
 |---------|--------|
 | Mobile First + Responsive | ✅ |
-| แผนที่ Leaflet (OpenStreetMap) | ✅ |
-| Layer เปิด/ปิด (น้ำถนน / คลอง / ฝน / CCTV) | ✅ |
-| Geolocation → ระบุเขตใกล้สุด | ✅ |
-| Dashboard สรุปสถานการณ์ | ✅ |
-| ตารางย้อนหลัง 5 วัน | ✅ |
-| คาดการณ์ความเสี่ยง 5 วัน + Disclaimer | ✅ |
-| Online / Offline indicator | ✅ |
+| Dashboard (ตำแหน่ง / สถานะ / ระดับน้ำ / ฝน) | ✅ |
+| แผนที่ Leaflet + Layer เปิด-ปิด | ✅ |
+| Geolocation → ระบุเขต | ✅ |
+| ย้อนหลัง 5 วัน (ตาราง) | ✅ |
+| คาดการณ์ 5 วัน + Disclaimer | ✅ |
 | Offline Queue (localStorage) | ✅ |
-| PWA (manifest + Service Worker) | ✅ พื้นฐาน |
-| เปิดบน GitHub Pages ได้ทันที | ✅ |
+| Audit Log (Demo) | ✅ |
+| PWA (manifest + Service Worker) | ✅ |
+| Online / Offline indicator | ✅ |
 
 ---
 
-## โครงสร้างไฟล์
+## เปิดดู Local
 
-```
-bkk-flood-watch-github/
-├── index.html          ← หน้าหลัก
-├── css/styles.css
-├── js/
-│   ├── data.js         ← Mock data
-│   └── app.js          ← Logic + แผนที่
-├── sw.js               ← Service Worker
-├── manifest.json
-├── icons/
-├── docs/schema.sql     ← Schema สำหรับ production
-└── README.md
+```bash
+# เปิด index.html ในเบราว์เซอร์
+# หรือ
+python -m http.server 8080
+# แล้วเปิด http://localhost:8080
 ```
 
 ---
@@ -79,27 +70,21 @@ bkk-flood-watch-github/
 
 | ประเภท | ความหมาย |
 |--------|----------|
-| Near Real-time | ข้อมูลล่าสุดตามรอบ (Demo ใช้เวลาปัจจุบัน) |
+| Near Real-time | ข้อมูลล่าสุดตามรอบ (Demo) |
 | ย้อนหลัง 5 วัน | Snapshot ที่ระบบเก็บเอง |
 | ล่วงหน้า 5 วัน | ระดับความเสี่ยงจากพยากรณ์ฝน **ไม่ใช่** ระดับน้ำเป็นซม. |
-| CCTV | แสดงหมุด – ฝัง stream ต้องได้รับอนุญาตก่อน |
 
 ---
 
 ## ขั้นตอนถัดไป (Production)
 
-1. เชื่อม Data Collector จาก  
-   - https://floodbangkok.bangkok.go.th/  
-   - https://bmawaterflow.bangkok.go.th/  
-   - https://nowcast.bangkok.go.th/  
-   - https://bangkok.thaiwater.net/  
+1. เชื่อม Data Collector จาก BMA (floodbangkok, bmawaterflow, nowcast, thaiwater)
 2. ใช้ `docs/schema.sql` (PostgreSQL + PostGIS)
-3. เปลี่ยนจาก Mock ใน `js/data.js` เป็นเรียก REST API จริง
-4. เพิ่ม Polygon เขตจริงสำหรับ point-in-polygon
+3. เปลี่ยน `js/data.js` เป็นเรียก REST API จริง
+4. เพิ่ม Next.js / NestJS ตามสถาปัตยกรรม 3-Tier
 
 ---
 
-## License / หมายเหตุ
+## License
 
-Starter template สำหรับใช้ภายในองค์กร  
-ข้อมูล Mock ไม่เกี่ยวข้องกับข้อมูลจริงของกรุงเทพมหานคร
+Starter template · ข้อมูล Mock ไม่ใช่ข้อมูลจริงของ กทม.
