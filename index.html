@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="description" content="BKK Flood Watch – ระบบติดตามและเฝ้าระวังน้ำท่วมกรุงเทพมหานคร (Demo)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="BKK Flood Watch" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>BKK Flood Watch – ระบบติดตามน้ำท่วม กทม.</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <!-- Google Font: Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-logo">BKK</div>
+        <div>
+          <h1>Flood Watch</h1>
+          <p>ระบบติดตามน้ำท่วม กทม.</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span id="online-badge" class="badge online">
+          <span class="dot"></span> Online
+        </span>
+        <button id="btn-refresh" class="icon-btn" title="รีเฟรช" aria-label="รีเฟรช">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Demo Notice -->
+    <div class="notice">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <p><strong>Demo Mode</strong> – ข้อมูลเป็นตัวอย่าง ไม่ใช่ข้อมูลจริงจาก BMA ใช้เป็นมาตรฐานตั้งต้น · เปิดบน GitHub Pages ได้ทันที</p>
+    </div>
+
+    <!-- Dashboard Card -->
+    <section class="card" id="dashboard-card">
+      <div class="dash-top">
+        <div class="dash-loc">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <div>
+            <p class="label">ตำแหน่งของคุณ</p>
+            <p class="value" id="user-district">ยังไม่ได้ระบุตำแหน่ง</p>
+          </div>
+        </div>
+        <button id="btn-locate" class="btn-locate">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          ใช้ตำแหน่ง
+        </button>
+      </div>
+
+      <div id="status-badge" class="status-badge watch">เฝ้าระวัง</div>
+
+      <div class="metrics">
+        <div class="metric">
+          <p class="label">ระดับน้ำถนนสูงสุด</p>
+          <p class="num" id="max-water">—</p>
+        </div>
+        <div class="metric">
+          <p class="label">ฝนล่าสุด</p>
+          <p class="num" id="rainfall">—</p>
+        </div>
+        <div class="metric">
+          <p class="label">จุดน้ำท่วมใกล้สุด</p>
+          <p class="num" id="nearest-flood">—</p>
+        </div>
+        <div class="metric">
+          <p class="label">จุดแจ้งเตือน</p>
+          <p class="num" id="alert-count">0</p>
+        </div>
+      </div>
+
+      <p class="timestamp">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        ข้อมูลล่าสุด: <span id="last-updated">—</span>
+        <span class="demo-tag">DEMO</span>
+      </p>
+    </section>
+
+    <!-- Map -->
+    <section class="map-section">
+      <div class="map-header">
+        <h2>แผนที่สถานการณ์</h2>
+        <div class="layers" id="layer-toggles">
+          <button class="layer-btn active" data-layer="road"><span class="dot blue"></span>น้ำถนน</button>
+          <button class="layer-btn active" data-layer="canal"><span class="dot cyan"></span>คลอง</button>
+          <button class="layer-btn active" data-layer="rainfall"><span class="dot indigo"></span>ฝน</button>
+          <button class="layer-btn active" data-layer="cctv"><span class="dot purple"></span>CCTV</button>
+        </div>
+      </div>
+      <div id="map" class="map"></div>
+      <div class="legend">
+        <span><i class="lg green"></i>ปกติ</span>
+        <span><i class="lg yellow"></i>เฝ้าระวัง</span>
+        <span><i class="lg orange"></i>น้ำท่วมขัง</span>
+        <span><i class="lg red"></i>วิกฤต</span>
+        <span><i class="lg gray"></i>ไม่มีข้อมูล</span>
+        <span><i class="lg blue"></i>คุณ</span>
+      </div>
+    </section>
+
+    <!-- History + Forecast -->
+    <div class="grid-2">
+      <section class="card">
+        <div class="card-head">
+          <h2>ย้อนหลัง 5 วัน</h2>
+          <p class="sub">ข้อมูล Snapshot ที่ระบบจัดเก็บเอง</p>
+        </div>
+        <div class="table-wrap">
+          <table id="history-table">
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th class="r">ฝนสะสม</th>
+                <th class="r">น้ำสูงสุด</th>
+                <th class="r">จุดท่วม</th>
+                <th>สถานะ</th>
+                <th class="c">แนวโน้ม</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>คาดการณ์ล่วงหน้า 5 วัน</h2>
+          <p class="sub warn">ประเมินความเสี่ยงจากพยากรณ์อากาศ ไม่ใช่การยืนยันระดับน้ำล่วงหน้า</p>
+        </div>
+        <div id="forecast-list" class="forecast-list"></div>
+      </section>
+    </div>
+
+    <!-- Actions -->
+    <section class="card">
+      <h2 class="card-title">รายงาน / เครื่องมือ (Demo)</h2>
+      <div class="actions">
+        <button id="btn-report" class="btn primary">รายงานน้ำท่วม (Offline Queue)</button>
+        <button id="btn-show-api" class="btn secondary">ดูโครงสร้างข้อมูล Demo</button>
+      </div>
+      <p class="sync-info">Sync ล่าสุด: <span id="sync-time">—</span></p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    BKK Flood Watch · Near Real-time Demo · แหล่งอ้างอิง: floodbangkok / bmawaterflow / nowcast / thaiwater · เปิดบน GitHub Pages ได้
+  </footer>
+
+  <!-- Modal for data structure -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>โครงสร้างข้อมูล Demo</h3>
+        <button id="modal-close" class="icon-btn">&times;</button>
+      </div>
+      <pre id="modal-body"></pre>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
