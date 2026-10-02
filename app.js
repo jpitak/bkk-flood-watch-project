@@ -172,7 +172,9 @@
         attribution: '&copy; OpenStreetMap',
         maxZoom: 19
       }).addTo(map);
-      setTimeout(function () { map.invalidateSize(); }, 200);
+      setTimeout(function () { map.invalidateSize(); }, 100);
+      setTimeout(function () { if (map) map.invalidateSize(); }, 500);
+      setTimeout(function () { if (map) map.invalidateSize(); }, 1200);
       renderMarkers();
     } catch (err) {
       console.error('[BKK] Map init failed', err);
